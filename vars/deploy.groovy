@@ -22,7 +22,7 @@
 */
 
 
-import net.media.DeploymentHelper
+import DeploymentHelper
 
 def call(Map properties){
 	def targetPath = ""
