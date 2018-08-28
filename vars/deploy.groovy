@@ -22,11 +22,13 @@
 */
 
 
-import net.media.*
+import net.media.DeploymentHelper
 
 def call(Map properties){
 	def targetPath = ""
 	def includeInZip = ""
+
+	helper = new DeploymentHelper()
 
 	if(properties.containsKey('dockerize') && properties['dockerize']){
 		enforceNamespace(properties['appName']) 
@@ -51,7 +53,7 @@ def call(Map properties){
 	if( properties['zip'] == true ){
 			if( properties.containsKey("includeInZip"))
 				includeInZip = properties['includeInZip']
-			zipd("${includeInZip}", fileName, targetPath)
+			helper.zipd("${includeInZip}", fileName, targetPath)
 	}
 
 
@@ -69,7 +71,7 @@ def call(Map properties){
   }
 
 	else {
-		initMonolithDelivery(properties, fileName ,targetPath)
+		helper.initMonolithDelivery(properties, fileName ,targetPath)
 	}
 
 }
