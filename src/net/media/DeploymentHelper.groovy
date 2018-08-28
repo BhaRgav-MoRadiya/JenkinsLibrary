@@ -1,4 +1,4 @@
-
+class DeploymentHelper{
 /*
   Zip the given files.
 */
@@ -76,6 +76,4 @@ def propertiesVerifier(String[] required, Map properties, Boolean dockerize){
 
 }
 
-
-//required for some reason
-return this
+}
