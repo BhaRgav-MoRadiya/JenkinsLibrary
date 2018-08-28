@@ -22,7 +22,7 @@ def zipd(String inclusion, String fileName, String targetPath){
 /*
   Initiate rsync of zip with destination IP addresses.
 */
-def initMonolithDelivery(Map properties, String fileName){
+def initMonolithDelivery(Map properties, String fileName, String targetPath){
   for(ip in properties['ip']){
     def rsync = "rsync -e 'ssh -o StrictHostKeyChecking=no' -avrzP ${targetPath}/${fileName} ${properties['user']}@${ip}:${properties['destinationPath']}"
     def output = sh (script: rsync, returnStdout: true)
