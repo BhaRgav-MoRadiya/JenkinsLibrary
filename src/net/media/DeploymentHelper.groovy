@@ -7,11 +7,11 @@ class DeploymentHelper{
 def zipd(String inclusion, String fileName, String targetPath){
   //fileName is the jar to be deployed.
   //inclusion are the files provided by user to be zipped using includeInZip
-  zipper=  """
+  def zipper=  """
       cd ${targetPath}
       zip -r ${fileName}.zip ${fileName} ${inclusion}
   """
-  zipped = sh( script: zipper, returnStatus: true)
+  def zipped = sh( script: zipper, returnStatus: true)
   if( zipped == 0)
     print("[DEPLOY LIB] zip success.")
   else
@@ -24,8 +24,8 @@ def zipd(String inclusion, String fileName, String targetPath){
 */
 def initMonolithDelivery(Map properties, String fileName){
   for(ip in properties['ip']){
-    rsync = "rsync -e 'ssh -o StrictHostKeyChecking=no' -avrzP ${targetPath}/${fileName} ${properties['user']}@${ip}:${properties['destinationPath']}"
-    output = sh (script: rsync, returnStdout: true)
+    def rsync = "rsync -e 'ssh -o StrictHostKeyChecking=no' -avrzP ${targetPath}/${fileName} ${properties['user']}@${ip}:${properties['destinationPath']}"
+    def output = sh (script: rsync, returnStdout: true)
     println(output)
   }
 }
@@ -47,7 +47,7 @@ def abortBuild(String msg){
   Enforces namespaces for dockerized builds.
 */
 def enforceNamespace(String appName){
-  splitter = appName.split("/")
+  def splitter = appName.split("/")
   if( splitter.length() !=4 )
     abortBuild("Namespace enforcement failed. Expected format '{TeamName}/{Environment}/{ProjectName}/{ApplicationName}'")
 
