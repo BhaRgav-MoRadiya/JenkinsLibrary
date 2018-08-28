@@ -1,3 +1,5 @@
+package net.media
+
 class DeploymentHelper{
 /*
   Zip the given files.
