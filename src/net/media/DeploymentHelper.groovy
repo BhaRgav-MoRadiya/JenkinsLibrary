@@ -85,5 +85,6 @@ def propertiesVerifier(Map properties, Boolean dockerize){
 	return this
 }
 
+return this
 
 }
