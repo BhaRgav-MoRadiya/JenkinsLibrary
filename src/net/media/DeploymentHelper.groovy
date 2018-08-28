@@ -1,6 +1,5 @@
 package net.media
 
-class DeploymentHelper{
 /*
   Zip the given files.
 */
@@ -17,7 +16,6 @@ def zipd(String inclusion, String fileName, String targetPath){
   else
     abortBuild("[DEPLOY LIB] zip failed for ${filename} and ${inclusion}")
 
-	return this
 }
 
 
@@ -30,8 +28,6 @@ def initMonolithDelivery(Map properties, String fileName){
     def output = sh (script: rsync, returnStdout: true)
     println(output)
   }
-
-	return this
 }
 
 
@@ -44,7 +40,6 @@ def abortBuild(String msg){
     //currentBuild variable is available by default.
     currentBuild.result = 'ABORTED'
     error(msg)
-	return this
 }
 
 
@@ -57,7 +52,6 @@ def enforceNamespace(String appName){
     abortBuild("Namespace enforcement failed. Expected format '{TeamName}/{Environment}/{ProjectName}/{ApplicationName}'")
 
   print("Enforcing namespace.")
-	return this
 }
 
 
@@ -82,9 +76,6 @@ def propertiesVerifier(Map properties, Boolean dockerize){
         abortBuild("Missing required key: ${param}")
   }
 
-	return this
 }
 
 return this
-
-}
