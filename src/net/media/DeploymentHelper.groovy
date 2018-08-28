@@ -57,7 +57,7 @@ def enforceNamespace(String appName){
   Check if all required params are provided
   for normal functioning of script.
 */
-def propertiesVerifier(String[] required, Map properties, Boolean dockerize){
+def propertiesVerifier(Map properties, Boolean dockerize){
 
   def required = ["user", "ip", "destinationPath", "type"] //required fields for program to work.
   def dockerizeRequired = ["appName", "tag"] //fields required for dockerizing
