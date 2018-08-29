@@ -26,11 +26,12 @@ def zipd(String inclusion, String fileName, String targetPath){
 def initMonolithDelivery(Map properties, String fileName, String targetPath){
   for(ip in properties['ip']){
     def rsync = "rsync -e 'ssh -o StrictHostKeyChecking=no' -avrzP ${targetPath}/${fileName} ${properties['user']}@${ip}:${properties['destinationPath']}"
-    def syncStatus = sh (script: rsync, returnStatus: true)
-		if(syncStatus==0)
-			print("Sync success")
-		else{
-			print("Syncing failed.")
+		try {
+    	def syncStatus = sh (script: rsync, returnStdout: true)
+			print("Sync success for ${properies['ip']}")
+		} catch(Exception e){
+			print("peanut butter jelly")
+			abortBuild("rsync failed.")
 		}
   }
 }
