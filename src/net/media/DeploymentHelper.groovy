@@ -24,16 +24,43 @@ def zipd(String inclusion, String fileName, String targetPath){
   Initiate rsync of zip with destination IP addresses.
 */
 def initMonolithDelivery(Map properties, String fileName, String targetPath){
+
+	String syncStatus=""
+	def successIP = [] //keep track of successful deployments
+
   for(ip in properties['ip']){
-    def rsync = "rsync -e 'ssh -o StrictHostKeyChecking=no' -avrzP ${targetPath}/${fileName} ${properties['user']}@${ip}:${properties['destinationPath']} > /dev/null"
+
+ 	 def rsync = "rsync -e 'ssh -o StrictHostKeyChecking=no' -avrzP ${targetPath}/${fileName} ${properties['user']}@${ip}:${properties['destinationPath']} 1>/dev/null"
+
 		try {
-    	def syncStatus = sh (script: rsync, returnStdout: true)
-			print("Sync success for ${properies['ip']}")
+    	syncStatus = sh (script: rsync, returnStdout: true)
+			successIP.add(ip)
+			print("Sync success for ${ip}")
 		} catch(Exception e){
+			print("Sync failed for ${ip}")
 			print(syncStatus)
+			if(successIP.size()>0){
+				print("Initiating rollback")
+				rollbackMonolith(properties, successIP, fileName)
+			}
 			abortBuild("rsync failed.")
 		}
   }
+}
+
+/*
+	Rollback deployments in case of failure in between deployment.
+*/
+def rollbackMonolith(Map properties, def successIP, String fileName){
+	for(ip in successIP){
+		def rollback = "ssh ${properties['user']}@${ip} 'rm ${properties['destinationPath']}/${fileName}'"
+		try{
+			def rolling = sh(script: rollback, returnStdout: true)
+			print("Rollback complete for ${ip}")
+		}catch(Exception e){
+			print("Rollback failed.")
+		}
+	}
 }
 
 
@@ -54,7 +81,7 @@ def abortBuild(String msg){
 */
 def enforceNamespace(String appName){
   def splitter = appName.split("/")
-  if( splitter.length() !=4 )
+  if( splitter.size() !=4 )
     abortBuild("Namespace enforcement failed. Expected format '{TeamName}/{Environment}/{ProjectName}/{ApplicationName}'")
 
   print("Enforcing namespace.")
