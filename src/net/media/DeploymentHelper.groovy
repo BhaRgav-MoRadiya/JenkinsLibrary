@@ -1,5 +1,6 @@
 package net.media
 
+
 /*
   Zip the given files.
 */
@@ -25,8 +26,12 @@ def zipd(String inclusion, String fileName, String targetPath){
 def initMonolithDelivery(Map properties, String fileName, String targetPath){
   for(ip in properties['ip']){
     def rsync = "rsync -e 'ssh -o StrictHostKeyChecking=no' -avrzP ${targetPath}/${fileName} ${properties['user']}@${ip}:${properties['destinationPath']}"
-    def output = sh (script: rsync, returnStdout: true)
-    println(output)
+    def syncStatus = sh (script: rsync, returnStatus: true)
+		if(syncStatus==0)
+    	println(output)
+		else{
+			print("Syncing failed.")
+		}
   }
 }
 
