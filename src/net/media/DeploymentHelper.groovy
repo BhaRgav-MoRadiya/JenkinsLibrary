@@ -28,7 +28,7 @@ def initMonolithDelivery(Map properties, String fileName, String targetPath){
     def rsync = "rsync -e 'ssh -o StrictHostKeyChecking=no' -avrzP ${targetPath}/${fileName} ${properties['user']}@${ip}:${properties['destinationPath']}"
     def syncStatus = sh (script: rsync, returnStatus: true)
 		if(syncStatus==0)
-    	println(output)
+			print("Sync success")
 		else{
 			print("Syncing failed.")
 		}
