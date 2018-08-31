@@ -63,9 +63,12 @@ def call(Map properties){
 		stage('Building docker image'){
 			app = docker.build("${properties['appName']}")
 		}
+		stage('Pushing to reports.mn'){
+			docker.withRegistry('http://r.reports.mn')	{
+				app.push('latest')
+			}
 		}
   }
-
 	else {
 		helper.initMonolithDelivery(properties, fileName ,targetPath)
 	}
