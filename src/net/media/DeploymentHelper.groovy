@@ -43,7 +43,7 @@ def initMonolithDelivery(Map properties, String fileName, String targetPath){
 				print("Initiating rollback")
 				rollbackMonolith(properties, successIP, fileName)
 			}
-			abortBuild("rsync failed.")
+			abortBuild("Syncing to server(s) failed.")
 		}
   }
 }

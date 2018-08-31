@@ -51,23 +51,23 @@ def call(Map properties){
 
 
 	if( properties['zip'] == true ){
+		stage('Zipping files'){
 			if( properties.containsKey("includeInZip"))
 				includeInZip = properties['includeInZip']
 			helper.zipd("${includeInZip}", fileName, targetPath)
+		}
 	}
 
 
-	if(properties['dockerize'] == true){	
-		docker = """
-			cd ${targetPath}
-			docker build -t r.reports.mn/${properties['appName']}:${tag} -f Dockerfile ${WORKSPACE}
-			docker push r.reports.mn/${properties['appName']}:${tag}
-		"""
-		buildStatus = sh(script: docker, returnStatus: true)
-		if(buildStatus==0)
-			print("Build push complete.")
-		else
-			print("Build failure.")
+	if(properties['dockerize'] == true){
+		stage('Building docker image'){
+			app = docker.build("${appName}")
+		}
+		stage('Pushing to reports.mn'){
+			docker.withRegistry('http://r.reports.mn')	{
+				app.push('latest')
+			}
+		}
   }
 
 	else {
