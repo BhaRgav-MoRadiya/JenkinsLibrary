@@ -31,7 +31,7 @@ def call(Map properties){
 	helper = new DeploymentHelper()
 
 	if(properties.containsKey('dockerize') && properties['dockerize']){
-		enforceNamespace(properties['appName']) 
+		helper.enforceNamespace(properties['appName']) 
 	}
 
 	if( properties.containsKey("targetPath"))
