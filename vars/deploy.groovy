@@ -61,7 +61,7 @@ def call(Map properties){
 
 	if(properties['dockerize'] == true){
 		stage('Building docker image'){
-			app = docker.build("${appName}")
+			app = docker.build("${properties['appName']}")
 		}
 		stage('Pushing to reports.mn'){
 			docker.withRegistry('http://r.reports.mn')	{
