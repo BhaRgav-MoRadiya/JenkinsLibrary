@@ -7,15 +7,15 @@ package net.media
 def zipd(String inclusion, String fileName, String targetPath){
   //fileName is the jar to be deployed.
   //inclusion are the files provided by user to be zipped using includeInZip
-  def zipper=  """
-      cd ${targetPath}
-      zip -r ${fileName}.zip ${fileName} ${inclusion}
-  """
-  def zipped = sh( script: zipper, returnStatus: true)
-  if( zipped == 0)
+  def zipper=  "zip -r ${fileName}.zip ${fileName} ${inclusion}"
+	dir(targetPath){
+ 		def zipped = sh( script: zipper, returnStatus: true)
+  	if( zipped != 0)
+    	abortBuild("[DEPLOY LIB] zip failed for ${filename} and ${inclusion}")
+
     print("[DEPLOY LIB] zip success.")
-  else
-    abortBuild("[DEPLOY LIB] zip failed for ${filename} and ${inclusion}")
+	}
+ 
 
 }
 
@@ -85,6 +85,38 @@ def enforceNamespace(String appName){
     abortBuild("Namespace enforcement failed. Expected format '{TeamName}/{Environment}/{ProjectName}/{ApplicationName}'")
 
   print("Enforcing namespace.")
+}
+
+
+/*
+	Marathon container handling
+*/
+def marathonRunner(def properties){
+	def baseUrl = "http://marathon.og.reports.mn/v2/apps/"
+	def payload = ""
+	def marathonEndpoint = "
+	def appName = properties['appName']
+	def resourceUrl = baseUrl + appName
+
+	if(properties.containsKey('marathonInstances')){
+		def runnerCount = properties['marathonInstances']
+		payload  = '{"id": "${appName}", "instances": ${runnerCount}}'
+		marathonEndpoint = "curl -H 'Content-type: application/json' -X PATCH -d ${payload}"
+	}
+	else{
+		resourceUrl += "/restart"
+		if(properties.containsKey('marathonForce') && properties['marathonForce']==true)
+			resourceUrl += "?force=true"
+		marathonEndpoint = "curl -XPOST ${resourceUrl}"
+	}
+		
+
+
+	def status = sh (script: marathonEndpoint, returnStatus: true).trim()
+	if(status != 0)
+		abortBuild("Marathon deployment failed.")
+
+	print("Marathon restart initiated.")
 }
 
 

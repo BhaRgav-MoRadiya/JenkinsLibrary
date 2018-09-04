@@ -15,10 +15,8 @@
 			params['targetPath'] = "single-module/target"
 			params['appName']= "autoopts/crawler/proxytunnel"
 			params['tag'] = "prod"
-			params['parametrizedMesos'] = {
-				"id": "autoopts3/crawler/proxytunnel",
-				"instances": 2
-			}
+			params['marathonInstances'] = 2
+			params['marathonForce'] = true
 */
 
 
@@ -34,20 +32,20 @@ def call(Map properties){
 		helper.enforceNamespace(properties['appName']) 
 	}
 
-	if( properties.containsKey("targetPath"))
-		targetPath = "${WORKSPACE}/" + properties['targetPath']
-	else
-		targetPath = "${WORKSPACE}/target"
+	if(properties['type'] == 'war' || properties['type'] == 'jar'){
 
-	def getFilePath = "find ${targetPath}/ -maxdepth 1 -name '*.${properties['type']}' 2>/dev/null"
+		targetPath = (properties.containsKey("targetPath") ?  "${WORKSPACE}/" + properties['targetPath'] : "${WORKSPACE}/target") 
+		
+		def getFilePath = "find ${targetPath}/ -maxdepth 1 -name '*.${properties['type']}' 2>/dev/null"
 
+		try {
+				filePath = sh (script: getFilePath, returnStdout: true).trim()
+				fileName = filePath.split("/")[-1]
+			} catch(Exception e){
+				abortBuild("[DEPLOY LIB] PATH MOST LIKELY WRONG FOR TARGET DIRECTORY. SCRIPT LOOKING INTO  ${targetPath}. Use relative paths for targetPath param.")
+			}
 
-	try {
-			filePath = sh (script: getFilePath, returnStdout: true).trim()
-			fileName = filePath.split("/")[-1]
-		} catch(Exception e){
-			abortBuild("[DEPLOY LIB] PATH MOST LIKELY WRONG FOR TARGET DIRECTORY. SCRIPT LOOKING INTO  ${targetPath}. Use relative paths for targetPath param.")
-		}
+	}
 
 
 	if( properties['zip'] == true ){
@@ -65,12 +63,18 @@ def call(Map properties){
 		}
 		stage('Pushing to reports.mn'){
 			docker.withRegistry('http://r.reports.mn')	{
-				app.push('latest')
+				app.push('prod')
+				//app.push('other_tag')
 			}
+		}
+		stage('Deploying to marathon'){
+			helper.marathonRunner(properties)
 		}
   }
 	else {
-		helper.initMonolithDelivery(properties, fileName ,targetPath)
+		stage("Delivering package"){
+			helper.initMonolithDelivery(properties, fileName ,targetPath)
+		}
 	}
 
 }
