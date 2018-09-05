@@ -17,7 +17,9 @@ Accepts a Hashmap with deployment properties.
 |targetPath | custom /target for jenkins** | String | "first-module/target" | Monolithic | No |
 | dockerize | Whether to create docker image | Boolean | true / false | Containers | Yes | |
 |appName | Name used to create and deploy images or monolith apps. |String | "autoopts3/prod/crawler/proxytunnel", "teamName/env/projectName/applicationName" | Both | Yes| Library enforces a 4 layer naming convention as in example. Build will fail if not complied with. |
-| tag | Tag for docker image |  String | "prod", "latest" | Containers | No |   |
+| tag | Tag for docker image |  String | **only values allowed:** "prod", "latest" | Containers | No |   |
+|marathonInstances | set number of instances for marathon | Integer | 2 , 3 | Containers | no | If not given, a simple restart API call is made | |
+| forceMarathon | Adds ?force=true to API call | Boolean | true / false | Containers | no |  |
 
 
 ** Required only in case your build path is other than workspace/target.
@@ -28,14 +30,14 @@ Example: Your build path is workspace/customApp/target
 ```java
 //Import shared library. "_" is essential
 
-@Library("deploy")_
+@Library('deploy')_
 def properties = [:]
-properties["user"] = "root"
-properties["ip"] = ["172.17.0.3", "172.17.0.4"]
-properties["destinationPath"] = "/root/deploy/dir"
-properties["type"] = "jar"
+properties['user'] = "root"
+properties['ip'] = ['172.17.0.3', '172.17.0.4']
+properties['destinationPath'] = "/root/deploy/dir"
+properties['type'] = "jar"
 node {
-    stage("Deployment"){
+    stage('Deployment'){
         deploy(properties)
     }
 }
