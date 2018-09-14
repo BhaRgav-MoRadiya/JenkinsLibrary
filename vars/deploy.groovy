@@ -64,7 +64,9 @@ def call(Map properties){
 		stage('Pushing to reports.mn'){
 			docker.withRegistry('http://r.reports.mn')	{
 				app.push('latest')
-				app.push(helper.setTags())
+				def incTag = helper.manageTag(properties)
+				incTag = incTag.toString()
+				app.push(incTag)
 			}
 		}
 		stage('Deploying to marathon'){

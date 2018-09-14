@@ -1,5 +1,5 @@
 package net.media
-
+import groovy.json.JsonSlurper
 
 /*
   Zip the given files.
@@ -15,8 +15,6 @@ def zipd(String inclusion, String fileName, String targetPath){
 
     print("[DEPLOY LIB] zip success.")
 	}
- 
-
 }
 
 
@@ -34,6 +32,7 @@ def initMonolithDelivery(Map properties, String fileName, String targetPath){
 
 		try {
     	syncStatus = sh (script: rsync, returnStdout: true)
+			sh("unzip -o ${fileName}")
 			successIP.add(ip)
 			print("Sync success for ${ip}")
 		} catch(Exception e){
@@ -92,9 +91,9 @@ def enforceNamespace(String appName){
 	Marathon container handling
 */
 def marathonRunner(def properties){
-	def baseUrl = "http://marathon.og.reports.mn/v2/apps/"
+	def baseUrl = "http://dcos-master-1.og.reports.mn:8080/v2/apps/"
 	def payload = ""
-	def marathonEndpoint = "
+	def marathonEndpoint = ""
 	def appName = properties['appName']
 	def resourceUrl = baseUrl + appName
 
@@ -144,23 +143,45 @@ def propertiesVerifier(Map properties, Boolean dockerize){
 }
 
 /*
-	Control tag versions
+	Docker tag controllers
 ===========================================================================================
 */
 
-def dockerRMI(def tags){
-	def shellScript = libraryResource 'net/media/shell/deleteRegistry.sh'
-	writeFile file: 'deleteRegistry.sh', text: shellScript
-	sh 'chmod +x deleteRegistry.sh'
-	if(tags.size()<3)
-		return
-
-	def registry = sh(script: ./deleteRegistry.sh, returnStdout: true) 
-	
+/*
+	Remove docker images older than 3 builds
+*/
+def dockerRMI(def image, def tag){
+  dir('script'){
+      def shellScript = libraryResource 'net/media/shell/deleteImages.sh'
+      writeFile file: 'deleteImages.sh', text: shellScript
+      sh 'cdr=$(pwd);chmod +x $cdr/deleteImages.sh'
+      def registry = sh(script:'cdr=$(pwd);  $cdr/deleteImages.sh ${image} ${tag}', returnStatus:true)
+      if(registry==0)
+        print("Old image deletion successful.")
+      else
+        print("Old image deletion failed.")
+  }
 }
 
-def setTags(String appname){
-	def tags = getTags(appName)
+/*
+	Get all tags associated with an image
+*/
+def getAllTags(String appName){
+	def jsonSlurper = new JsonSlurper()
+	def response = new URL("http://r.reports.mn/v2/${appName}/tags/list").text
+	def object = jsonSlurper.parseText(response)
+	if(!object.containsKey("tags"))
+		abortBuild("No image found for ${appName} in registry.")
+
+	return object.tags
+}
+
+/*
+	Get auto-incrementing tag for the new
+	docker image.
+*/
+def getIncrementingTag(String appName){
+	def tags = getAllTags(appName)
 	tags.removeAll(["latest", "prod"])
 
 	//in case there is no tag
@@ -174,21 +195,19 @@ def setTags(String appname){
 	return lastTag + 1
 }
 
-def getTags(String appName){
-	def jsonSlurper = new JsonSlurper()
-	def response = new URL("http://r.reports.mn/v2/${appName}/tags/list").text
-	def object = jsonSlurper.parseText(response)
-	if(!object.containsKey("tags"))
-		abortBuild("No image found for ${appName} in registry.")
-
-	return object.tags
+def manageTag(def properties){
+	def nextTag = getIncrementingTag(properties['appName'])
+	print("nexttag : ${nextTag}")
+	def removeTag = nextTag-3
+	if(!(removeTag<1))
+		dockerRMI(properties['appName'], removeTag)
+	return nextTag
 }
 
 /*
 end tag methods
 ===========================================================================================
 */
-
 
 
 
