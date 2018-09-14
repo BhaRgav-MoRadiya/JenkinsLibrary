@@ -101,15 +101,15 @@ def marathonRunner(def properties){
 	if(properties.containsKey('marathonInstances')){
 		def runnerCount = properties['marathonInstances']
 		payload  = '{"id": "${appName}", "instances": ${runnerCount}}'
-		marathonEndpoint = "curl -H 'Content-type: application/json' -X PATCH -d ${payload}"
+		marathonEndpoint = "curl -H 'Content-type: application/json' -X PATCH -d ${payload} ${resourceUrl}"
 	}
 	else{
 		resourceUrl += "/restart"
-		if(properties.containsKey('marathonForce') && properties['marathonForce']==true)
-			resourceUrl += "?force=true"
 		marathonEndpoint = "curl -XPOST ${resourceUrl}"
 	}
 		
+	if(properties.containsKey('marathonForce') && properties['marathonForce']==true)
+		resourceUrl += "?force=true"
 
 
 	def status = sh (script: marathonEndpoint, returnStatus: true).trim()
@@ -142,5 +142,54 @@ def propertiesVerifier(Map properties, Boolean dockerize){
   }
 
 }
+
+/*
+	Control tag versions
+===========================================================================================
+*/
+
+def dockerRMI(def tags){
+	def shellScript = libraryResource 'net/media/shell/deleteRegistry.sh'
+	writeFile file: 'deleteRegistry.sh', text: shellScript
+	sh 'chmod +x deleteRegistry.sh'
+	if(tags.size()<3)
+		return
+
+	def registry = sh(script: ./deleteRegistry.sh, returnStdout: true) 
+	
+}
+
+def setTags(String appname){
+	def tags = getTags(appName)
+	tags.removeAll(["latest", "prod"])
+
+	//in case there is no tag
+	if(tags.size() < 1)
+		return 1
+
+	tags = tags.sort()
+
+	def lastTag = tags[-1]
+	lastTag = lastTag.toInteger()
+	return lastTag + 1
+}
+
+def getTags(String appName){
+	def jsonSlurper = new JsonSlurper()
+	def response = new URL("http://r.reports.mn/v2/${appName}/tags/list").text
+	def object = jsonSlurper.parseText(response)
+	if(!object.containsKey("tags"))
+		abortBuild("No image found for ${appName} in registry.")
+
+	return object.tags
+}
+
+/*
+end tag methods
+===========================================================================================
+*/
+
+
+
 
 return this

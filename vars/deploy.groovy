@@ -63,8 +63,8 @@ def call(Map properties){
 		}
 		stage('Pushing to reports.mn'){
 			docker.withRegistry('http://r.reports.mn')	{
-				app.push('prod')
-				//app.push('other_tag')
+				app.push('latest')
+				app.push(helper.setTags())
 			}
 		}
 		stage('Deploying to marathon'){
