@@ -9,7 +9,7 @@ Accepts a Hashmap with deployment properties.
 | Param | Meaning | Type |Example value | Works for | Required | Comment |
 |------| ------- |  -------| -------|    -------| -------|  -------|
 |user| username with access to box| String | "root" | Monolithic | Yes| |
-|ip| ip for the boxes | Array of strings | ['127.0.0.1', '127.0.0.2'] | Monolithic| Yes| |
+|ip| ip for the boxes | Array of strings | ["127.0.0.1", "127.0.0.2"] | Monolithic| Yes| |
 | zip | To compress the build output | Boolean | true / false | Monolithic | No| |
 |includeInZip | Files other than war or jar to be included | Space separated string| "lib/" or "lib/ other_dir/"| Monolithic| No | Works only with zip=true|
 |destinationPath| Path to deployment dir on server | String| /opt/project/ | Monolithic | Yes | |
@@ -25,20 +25,53 @@ Accepts a Hashmap with deployment properties.
 ** Required only in case your build path is other than workspace/target.
 Example: Your build path is workspace/customApp/target 
 
-#### Sample Jenkinsfile
+#### Sample Jenkinsfile for monolith deployment
+
+```java
+//Import shared library. "_" is essential
+
+@Library("deploy")_
+def properties = [:]
+properties["user"] = "root"
+properties["ip"] = ["172.17.0.3", "172.17.0.4"]
+properties["destinationPath"] = "/root/deploy/dir"
+properties["type"] = "jar"
+node {
+    stage("Deployment"){
+        deploy(properties)
+    }
+}
+```
+
+
+#### Sample Jenkinsfile for dockerized deployment
 
 ```java
 //Import shared library. "_" is essential
 
 @Library('deploy')_
+
 def properties = [:]
-properties['user'] = "root"
-properties['ip'] = ['172.17.0.3', '172.17.0.4']
-properties['destinationPath'] = "/root/deploy/dir"
-properties['type'] = "jar"
-node {
-    stage('Deployment'){
+properties["dockerize"] = true
+properties["appName"] = "autoopt-3/staging/crawler/mnet-sample"
+properties["marathonInstances"] = 1
+properties["tag"] = "latest"
+
+
+node('ci_adc'){
+    stage('Git'){
+        git 'git@tree.mn:mnet/mnet-sample.git'
+        mvnHome = tool 'maven3'
+    }
+    stage('Build'){
+        sh("'${mvnHome}/bin/mvn' clean package -P POM_PROFILE")
+    }
+    stage('Deploy'){
         deploy(properties)
     }
+    stage('Notifications'){
+        print("notification sent")
+    }
 }
+
 ```

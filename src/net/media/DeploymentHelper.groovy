@@ -1,5 +1,6 @@
 package net.media
 import groovy.json.JsonSlurper
+import groovy.json.JsonBuilder
 
 /*
   Zip the given files.
@@ -92,27 +93,28 @@ def enforceNamespace(String appName){
 */
 def marathonRunner(def properties){
 	def baseUrl = "http://dcos-master-1.og.reports.mn:8080/v2/apps/"
-	def payload = ""
 	def marathonEndpoint = ""
-	def appName = properties['appName']
+	def appName = "/" + properties['appName']
 	def resourceUrl = baseUrl + appName
 
 	if(properties.containsKey('marathonInstances')){
 		def runnerCount = properties['marathonInstances']
-		payload  = '{"id": "${appName}", "instances": ${runnerCount}}'
-		marathonEndpoint = "curl -H 'Content-type: application/json' -X PATCH -d ${payload} ${resourceUrl}"
+		def json = new JsonBuilder()
+		def root = json id: appName, instances: runnerCount
+		def payload = json.toString()
+		marathonEndpoint = "curl -H 'Content-type: application/json' -s -o /dev/null -w '%{http_code}' -X PUT -d '${payload}' '${resourceUrl}'"
 	}
 	else{
 		resourceUrl += "/restart"
-		marathonEndpoint = "curl -XPOST ${resourceUrl}"
+		marathonEndpoint = "curl -XPOST -s -o /dev/null -w '%{http_code}' ${resourceUrl}"
 	}
 		
 	if(properties.containsKey('marathonForce') && properties['marathonForce']==true)
 		resourceUrl += "?force=true"
 
 
-	def status = sh (script: marathonEndpoint, returnStatus: true).trim()
-	if(status != 0)
+	def httpStatus = sh (script: marathonEndpoint, returnStdout: true)
+	if(httpStatus != "200")
 		abortBuild("Marathon deployment failed.")
 
 	print("Marathon restart initiated.")
@@ -151,11 +153,11 @@ def propertiesVerifier(Map properties, Boolean dockerize){
 	Remove docker images older than 3 builds
 */
 def dockerRMI(def image, def tag){
-  dir('script'){
+  dir("script"){
       def shellScript = libraryResource 'net/media/shell/deleteImages.sh'
-      writeFile file: 'deleteImages.sh', text: shellScript
+      writeFile file: "deleteImages.sh", text: shellScript
       sh 'cdr=$(pwd);chmod +x $cdr/deleteImages.sh'
-      def registry = sh(script:'cdr=$(pwd);  $cdr/deleteImages.sh ${image} ${tag}', returnStatus:true)
+      def registry = sh(script:'cdr=$(pwd);  $cdr/deleteImages.sh $image $tag', returnStatus:true)
       if(registry==0)
         print("Old image deletion successful.")
       else
