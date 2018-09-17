@@ -157,7 +157,8 @@ def dockerRMI(def image, def tag){
       def shellScript = libraryResource 'net/media/shell/deleteImages.sh'
       writeFile file: "deleteImages.sh", text: shellScript
       sh 'cdr=$(pwd);chmod +x $cdr/deleteImages.sh'
-      def registry = sh(script:'cdr=$(pwd);  $cdr/deleteImages.sh $image $tag', returnStatus:true)
+			def currentDirectory = pwd()
+      def registry = sh(script:" ${currentDirectory}/deleteImages.sh $image $tag", returnStatus:true)
       if(registry==0)
         print("Old image deletion successful.")
       else

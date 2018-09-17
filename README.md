@@ -49,7 +49,7 @@ node {
 ```java
 //Import shared library. "_" is essential
 
-@Library('deploy')_
+@Library("deploy")_
 
 def properties = [:]
 properties["dockerize"] = true
@@ -58,18 +58,18 @@ properties["marathonInstances"] = 1
 properties["tag"] = "latest"
 
 
-node('ci_adc'){
-    stage('Git'){
-        git 'git@tree.mn:mnet/mnet-sample.git'
-        mvnHome = tool 'maven3'
+node("ci_adc"){
+    stage("Git"){
+        git "git@tree.mn:mnet/mnet-sample.git"
+        mvnHome = tool "maven3"
     }
-    stage('Build'){
-        sh("'${mvnHome}/bin/mvn' clean package -P POM_PROFILE")
+    stage("Build"){
+        sh(""${mvnHome}/bin/mvn" clean package -P POM_PROFILE")
     }
-    stage('Deploy'){
+    stage("Deploy"){
         deploy(properties)
     }
-    stage('Notifications'){
+    stage("Notifications"){
         print("notification sent")
     }
 }
