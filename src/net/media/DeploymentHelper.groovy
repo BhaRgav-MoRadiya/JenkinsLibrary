@@ -102,15 +102,15 @@ def marathonRunner(def properties){
 		def json = new JsonBuilder()
 		def root = json id: appName, instances: runnerCount
 		def payload = json.toString()
-		if(properties.containsKey('forceMarathon') && properties['marathonForce']==true)
+		if(properties.containsKey('forceMarathon') && properties['forceMarathon']==true)
 			resourceUrl += "?force=true"
 		marathonEndpoint = "curl -H 'Content-type: application/json' -s -o /dev/null -w '%{http_code}' -X PUT -d '${payload}' '${resourceUrl}'"
 	}
 	else{
 		resourceUrl += "/restart"
-		if(properties.containsKey('forceMarathon') && properties['marathonForce']==true)
+		if(properties.containsKey('forceMarathon') && properties['forceMarathon']==true)
 			resourceUrl += "?force=true"
-		marathonEndpoint = "curl -XPOST -s -o /dev/null -w '%{http_code}' ${resourceUrl}"
+		marathonEndpoint = "curl -XPOST -H 'Content-type: application/json' -s -o /dev/null -w '%{http_code}' ${resourceUrl}"
 	}
 		
 
