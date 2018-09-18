@@ -61,8 +61,8 @@ def call(Map properties){
 		stage('Building docker image'){
 			if(properties.containsKey("dockerfile"))
 				app = docker.build("${properties['appName']}", "-f ${properties['dockerfile']} .")
-			
-			app = docker.build("${properties['appName']}")
+			else
+				app = docker.build("${properties['appName']}")
 		}
 		stage('Pushing to reports.mn'){
 			docker.withRegistry('http://r.reports.mn')	{
