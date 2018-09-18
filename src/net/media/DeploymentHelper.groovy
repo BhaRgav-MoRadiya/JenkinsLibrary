@@ -106,11 +106,11 @@ def marathonRunner(def properties){
 	}
 	else{
 		resourceUrl += "/restart"
+		if(properties.containsKey('marathonForce') && properties['marathonForce']==true)
+			resourceUrl += "?force=true"
 		marathonEndpoint = "curl -XPOST -s -o /dev/null -w '%{http_code}' ${resourceUrl}"
 	}
 		
-	if(properties.containsKey('marathonForce') && properties['marathonForce']==true)
-		resourceUrl += "?force=true"
 
 
 	def httpStatus = sh (script: marathonEndpoint, returnStdout: true)
