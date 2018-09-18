@@ -59,6 +59,9 @@ def call(Map properties){
 
 	if(properties['dockerize'] == true){
 		stage('Building docker image'){
+			if(properties.containsKey("dockerfile"))
+				app = docker.build("${properties['appName']}", "-f ${properties['dockerfile']} .")
+			
 			app = docker.build("${properties['appName']}")
 		}
 		stage('Pushing to reports.mn'){
