@@ -187,7 +187,7 @@ def getAllTags(String appName){
 */
 def getIncrementingTag(String appName){
 	def tags = getAllTags(appName)
-	tags.removeAll(["latest", "prod"])
+	tags.removeAll(["latest", "prod", "staging"])
 
 	//in case there is no tag
 	if(tags.size() < 1)

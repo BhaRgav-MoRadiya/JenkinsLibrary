@@ -17,6 +17,8 @@
 			params['tag'] = "prod"
 			params['marathonInstances'] = 2
 			params['marathonForce'] = true
+			params['dockerfile'] = "Dockerfile.en"
+			params['onlyBuild'] = true
 */
 
 
@@ -64,6 +66,7 @@ def call(Map properties){
 			else
 				app = docker.build("${properties['appName']}")
 		}
+
 		stage('Pushing to reports.mn'){
 			docker.withRegistry('http://r.reports.mn')	{
 				app.push('latest')
@@ -72,9 +75,13 @@ def call(Map properties){
 				app.push(incTag)
 			}
 		}
-		stage('Deploying to marathon'){
-			helper.marathonRunner(properties)
+
+		if(properties.containsKey('onlyBuild') && !properties['onlyBuild']){
+			stage('Deploying to marathon'){
+				helper.marathonRunner(properties)
+			}
 		}
+
   }
 	else {
 		stage("Delivering package"){
