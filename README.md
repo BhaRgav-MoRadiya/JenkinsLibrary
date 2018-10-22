@@ -20,6 +20,8 @@ Accepts a Hashmap with deployment properties.
 | tag | Tag for docker image |  String | **only values allowed:** "prod", "latest" | Containers | No |   |
 |marathonInstances | set number of instances for marathon | Integer | 2 , 3 | Containers | no | If not given, a simple restart API call is made | |
 | forceMarathon | Adds ?force=true to API call | Boolean | true / false | Containers | no |  |
+| onlyBuild | Only and only builds the docker images and pushes to registry. | Boolean | true / false | Containers | no |  |
+| dockerfile | Overrides the default 'Dockerfile' name and path. | String | "Dockerfile.en" , "./fake/directory/Dockerfile" | Containers | no |  |
 
 
 ** Required only in case your build path is other than workspace/target.
