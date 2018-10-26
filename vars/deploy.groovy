@@ -19,6 +19,7 @@
 			params['marathonForce'] = true
 			params['dockerfile'] = "Dockerfile.en"
 			params['onlyBuild'] = true
+			params['marathonEndpoint'] = "http://dcos-master-1.og.reports.mn:8080/v2/apps/"
 */
 
 
@@ -88,6 +89,8 @@ def call(Map properties){
 			helper.initMonolithDelivery(properties, fileName ,targetPath)
 		}
 	}
+
+  return true
 
 }
 

@@ -92,7 +92,10 @@ def enforceNamespace(String appName){
 	Marathon container handling
 */
 def marathonRunner(def properties){
-	def baseUrl = "http://dcos-master-1.og.reports.mn:8080/v2/apps/"
+	if(properties.containsKey('marathonEndpoint'))
+		def baseUrl = properties['marathonEndpoint']
+	else
+		def baseUrl = "http://dcos-master-1.og.reports.mn:8080/v2/apps/"
 	def marathonEndpoint = ""
 	def appName = "/" + properties['appName']
 	def resourceUrl = baseUrl + appName
