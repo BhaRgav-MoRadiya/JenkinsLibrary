@@ -22,6 +22,8 @@ Accepts a Hashmap with deployment properties.
 | forceMarathon | Adds ?force=true to API call | Boolean | true / false | Containers | no |  |
 | onlyBuild | Only and only builds the docker images and pushes to registry. | Boolean | true / false | Containers | no |  |
 | dockerfile | Overrides the default 'Dockerfile' name and path. | String | "Dockerfile.en" , "./fake/directory/Dockerfile" | Containers | no |  |
+|marathonEndpoint| Give your own marathon endpoint| String | "http://your-own-thing.og.reports.mn:8080/v2/apps/" | Containers | No | By default 'http://dcos-master-1.og.reports.mn:8080/v2/apps/' is used |
+|customArgs | Pass arguments while building docker images| String | "--build-arg deployment_env=prod" | Containers | No | |
 
 
 ** Required only in case your build path is other than workspace/target.

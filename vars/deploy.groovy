@@ -93,7 +93,6 @@ def call(Map properties){
 				helper.marathonRunner(properties)
 			}
 		}
-
   }
 	else {
 		stage("Delivering package"){
