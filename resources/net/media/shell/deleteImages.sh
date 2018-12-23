@@ -1,9 +1,9 @@
 #!/bin/bash
 
 if [ $# -ne 2 ]
-  then
-    echo "2 arguments required."
-		exit 1
+then
+  echo "2 arguments required."
+  exit 1
 fi
 
 BASEURL="http://r.reports.mn"
@@ -16,8 +16,8 @@ DIGEST=$(curl -v -s  -H "Accept:application/vnd.docker.distribution.manifest.v2+
 digest=$(echo -n $DIGEST | grep -o "[0-9a-z:]*")
 
 if [ -z $digest ]; then
-			 echo "Image:tag tuple not found in registry."
-			 exit 1	
+  echo "Image:tag tuple not found in registry."
+  exit 1
 fi
 
 echo "DIGEST: $digest"
@@ -27,9 +27,9 @@ echo "Connecting to registry..."
 result=$(curl -H "Accept: application/vnd.docker.distribution.manifest.v2+json" -k -w "%{http_code}" -v -s -o /dev/null -X DELETE "$BASEURL/v2/$REGISTRY/manifests/$digest")
 
 if [ $result -eq 202 ]; then
-	echo "Deletion successful."
-	exit 0
+  echo "Deletion successful."
+  exit 0
 else
-	echo "Deletion failed."
-	exit 1
+  echo "Deletion failed."
+  exit 1
 fi

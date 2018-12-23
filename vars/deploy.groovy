@@ -27,80 +27,86 @@
 import net.media.DeploymentHelper
 
 def call(Map properties){
-	def targetPath = ""
-	def includeInZip = ""
-
+	
+	def aws_docker_command = """docker run --rm -t \$(tty &>/dev/null && echo "-i") -e "AWS_ACCESS_KEY_ID=\${AWS_ACCESS_KEY_ID}" -e "AWS_SECRET_ACCESS_KEY=\${AWS_SECRET_ACCESS_KEY}" -e "AWS_DEFAULT_REGION=${REGION}" mesosphere/aws-cli """
+	def customImage = ''
 	helper = new DeploymentHelper()
-
-	if(properties.containsKey('dockerize') && properties['dockerize']){
-		helper.enforceNamespace(properties['appName']) 
-	}
-
-	if(properties['type'] == 'war' || properties['type'] == 'jar'){
-
-		targetPath = (properties.containsKey("targetPath") ?  "${WORKSPACE}/" + properties['targetPath'] : "${WORKSPACE}/target") 
-		
-		def getFilePath = "find ${targetPath}/ -maxdepth 1 -name '*.${properties['type']}' 2>/dev/null"
-
-		try {
-				filePath = sh (script: getFilePath, returnStdout: true).trim()
-				fileName = filePath.split("/")[-1]
-			} catch(Exception e){
-				abortBuild("[DEPLOY LIB] PATH MOST LIKELY WRONG FOR TARGET DIRECTORY. SCRIPT LOOKING INTO  ${targetPath}. Use relative paths for targetPath param.")
-			}
-
-	}
-
-
-	if( properties['zip'] == true ){
-		stage('Zipping files'){
-			if( properties.containsKey("includeInZip"))
-				includeInZip = properties['includeInZip']
-			helper.zipd("${includeInZip}", fileName, targetPath)
+	stage("check for prerequisite"){
+		if ("${env.gitlabTargetBranch}" == "release" && fileExists('task_def.json') && fileExists('Dockerfile') && fileExists('variables.groovy')) {
+    	echo 'prerequisite check passed..!!'
+		} else {
+			echo 'Either code is pushed to different branch than the one specified or required files are missing..!! required files:[task_def.json,Dockerfile,variables.groovy]'
+    	currentBuild.result = 'ABORTED'
+			return
 		}
 	}
-
-
-	if(properties['dockerize'] == true){
-		stage('Building docker image'){
-			extraParams = ""
-			extraBoolean = false
-			if(properties.containsKey("customArgs")){
-				extraParams = properties['customArgs']
-				extraBoolean = true
-			}
-			if(properties.containsKey("dockerfile")){
-				extraParams += " -f ${properties['dockerfile']} ."
-				extraBoolean = true
-			}
-			if(extraBoolean)
-				app = docker.build("${properties['appName']}", extraParams)
-			else
-				app = docker.build("${properties['appName']}")
-		}
-
-		stage('Pushing to reports.mn'){
-			docker.withRegistry('http://r.reports.mn')	{
-				app.push('latest')
-				def incTag = helper.manageTag(properties)
-				incTag = incTag.toString()
-				app.push(incTag)
-			}
-		}
-
-		if(properties.containsKey('onlyBuild') && !properties['onlyBuild']){
-			stage('Deploying to marathon'){
-				helper.marathonRunner(properties)
-			}
-		}
-  }
-	else {
-		stage("Delivering package"){
-			helper.initMonolithDelivery(properties, fileName ,targetPath)
-		}
+	stage("fails if Repository exists"){
+		try{
+				withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId:"sem-nv-sentimeta-deployment-key"]]) {
+									sh """
+									set +x
+									${aws_docker_command} ecr create-repository --repository-name ${NAME}
+									set -x
+									"""
+								echo "New repository created...!!!"
+						}
+		}catch(ex){echo "repository already exists..!!!"}
 	}
+
+	stage("build docker image"){
+					customImage=docker.build("${NAME}:${env.gitlabAfter}")
+	}
+
+	stage("image push"){
+		docker.withRegistry('https://778201844681.dkr.ecr.us-east-1.amazonaws.com','ecr:us-east-1:sem-nv-sentimeta-deployment-key') {
+					sh "mkdir -p .docker; cat /root/.dockercfg > $WORKSPACE/.docker/config.json"
+					withEnv(['DOCKER_CONFIG=$WORKSPACE/.docker']) {
+							withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId:"sem-nv-sentimeta-deployment-key"]]) {
+								res = sh(returnStdout: true, script:"${aws_docker_command} ecr get-login --no-include-email --region ${REGION}").trim()
+								sh """
+								set +x
+								eval ${res}
+								set -x
+								"""
+							}
+							customImage.push()
+					}
+			}
+		}
+
+	stage("register/update task definition"){
+		withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId:"sem-nv-sentimeta-ecs-key"]]) {
+			sh "rm -f task_def.json"
+			sh "sed -e 's/IMAGE_TAG/${NAME}:${env.gitlabAfter}/g' -e 's/FAMILY_NAME/${FAMILY}/g' -e 's/CONTAINER_NAME/${FAMILY}/g' -e 's/EXPOSED_PORT/${EXPOSED_PORT}/g' taskdef.json > task_def.json"
+			def JSONFILE = readFile('task_def.json')
+			sh """
+			#!/bin/bash
+			set +x
+			${aws_docker_command} ecs register-task-definition --family ${FAMILY} --cli-input-json '${JSONFILE}'  --region ${REGION}
+			set -x
+			"""
+			}
+		}
+		stage("update service"){
+			try{
+				withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId:"sem-nv-sentimeta-ecs-key"]]) {
+					sh"""
+					#!/bin/bash
+					SERVICES=`${aws_docker_command} ecs describe-services --services ${SERVICE_NAME} --cluster ${CLUSTER} --region ${REGION} | jq .failures[]`
+					#Get latest revision
+					REVISION=`${aws_docker_command} ecs describe-task-definition --task-definition ${FAMILY} --region ${REGION} | jq .taskDefinition.revision`
+
+					if [ "\$SERVICES" == "" ]; then
+						echo "Updateing existing service..!!"
+						${aws_docker_command} ecs update-service --cluster ${CLUSTER} --region ${REGION} --service ${SERVICE_NAME} --task-definition ${FAMILY}:\${REVISION} --desired-count ${DESIRED_COUNT}
+					else
+						echo "Service doesn't exist...!!"
+					fi
+					 """
+				 }
+			}catch(ex){echo "error updating service..!!!"}
+ 		}
 
   return true
 
 }
-

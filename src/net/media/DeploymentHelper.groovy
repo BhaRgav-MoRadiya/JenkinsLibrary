@@ -114,7 +114,7 @@ def marathonRunner(def properties){
 			resourceUrl += "?force=true"
 		marathonEndpoint = "curl -XPOST -H 'Content-type: application/json' -s -o /dev/null -w '%{http_code}' ${resourceUrl}"
 	}
-		
+
 
 
 	def httpStatus = sh (script: marathonEndpoint, returnStdout: true)
