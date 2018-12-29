@@ -37,8 +37,9 @@ def call(Map properties){
     	echo 'prerequisite check passed..!!'
 		} else {
 			echo 'Either code is pushed to different branch than the one specified or required files are missing..!! required files:[task_def.json,Dockerfile,variables.groovy]'
-    	currentBuild.result = 'ABORTED'
-			return
+    	//currentBuild.result = 'ABORTED'
+			//return
+			helper.abortBuild("exiting..!!")
 		}
 	}
 	stage("fails if Repository exists"){
