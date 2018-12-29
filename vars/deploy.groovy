@@ -33,7 +33,7 @@ def call(Map constants){
 	writeFile file: "taskDefinition.json", text: taskDef
 	sh "sed -e 's/IMAGE_TAG/abccdd/g' taskDefinition.json > task_def.json"
 
-	sh "echo task_def.json"
+	sh "cat task_def.json"
 
 
   return true
