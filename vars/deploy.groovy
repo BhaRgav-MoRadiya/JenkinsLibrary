@@ -31,7 +31,7 @@ def call(Map constants){
 	//helper.first_test("funny")
 	def taskDef= libraryResource 'net/media/shell/taskdef.json'
 	writeFile file: "taskDefinition.json", text: taskDef
-	sh "sed -e 's/IMAGE_TAG/abccdd/g' taskDefinition.json > task_def.json"
+	sh "sed -e 's/IMAGE_NAME/abccdd/g' taskDefinition.json > task_def.json"
 
 	sh "cat task_def.json"
 
