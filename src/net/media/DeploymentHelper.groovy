@@ -18,6 +18,11 @@ def zipd(String inclusion, String fileName, String targetPath){
 	}
 }
 
+def first_test(String st){
+  stage( "${st}" ){
+    echo "I am in function first_test and in stage ${st}"
+  }
+}
 
 /*
   Initiate rsync of zip with destination IP addresses.
