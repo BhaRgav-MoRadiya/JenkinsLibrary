@@ -77,7 +77,7 @@ def rollbackMonolith(Map properties, def successIP, String fileName){
 def abortBuild(String msg){
     //currentBuild variable is available by default.
     currentBuild.result = 'ABORTED'
-    error(msg)
+    return
 }
 
 
