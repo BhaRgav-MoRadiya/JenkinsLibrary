@@ -30,7 +30,7 @@ def call(Map constants){
 	helper = new DeploymentHelper()
 	helper.first_test("funny")
 	def taskDef= libraryResource 'net/media/shell/taskdef.json'
-	writeFile file: "taskDefinition.json" text: taskDef
+	writeFile file: "taskDefinition.json", text: taskDef
 	sh "sed -e 's/IMAGE_TAG/abccdd/g' taskDefinition.json > task_def.json"
 
 	sh "echo task_def.json"
