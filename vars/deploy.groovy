@@ -36,7 +36,7 @@ def call(Map constants){
 	helper.setDefaults(constants)
 	helper.prerequisite(constants)
 	constants['flockWebhook']="https://api.flock.com/hooks/sendMessage/742f4f19-559a-417e-872c-0e51692a0a75"
-	helper.flockMessage(constants["flockWebhook"],constants['msgForFlock'])
+	helper.flockMessage(constants)
 	//helper.flockMessage(constants["flockWebhook"],"testing....!!!!")
 	// helper.setDefaults(constants)
 	// echo constants["abcd"]
