@@ -2,7 +2,8 @@
 
 /*
 			def constants = [:]
-			constants['awsAccountUri'] = '_same_for_media.net_'
+			constants['dockerfilePath'] = '_relative_path_from_root_directory_to_Dockerfile_if_not_placed_in_root_directory_'
+			constants['awsAccountUri'] = '_same_for_whole_media.net_'
 			constants['region'] = '_aws_region_where_repository_exists_or_to_be_created_'
 			constants['credsIdForECR'] = '_value_stored_in_jenkins_credsStore_'
 			constants['credsIdForECS'] = '_value_stored_in_jenkins_credsStore_'
@@ -29,9 +30,13 @@ def call(Map constants){
 
 	//def aws_docker_command = """docker run --rm -t \$(tty &>/dev/null && echo "-i") -e "AWS_ACCESS_KEY_ID=\${AWS_ACCESS_KEY_ID}" -e "AWS_SECRET_ACCESS_KEY=\${AWS_SECRET_ACCESS_KEY}" -e "AWS_DEFAULT_REGION=${REGION}" mesosphere/aws-cli """
 	def customImage = ''
+	def msgForFlock=''
 	helper = new DeploymentHelper()
-	constants['flockWebhook']="https://api.flock.com/hooks/sendMessage/742f4f19-559a-417e-872c-0e51692a0a"
-	helper.flockMessage(constants["flockWebhook"],"testing....!!!!")
+	helper.setDefaults(Map constants)
+	helper.prerequisite(constants["dockerfilePath"])
+	constants['flockWebhook']="https://api.flock.com/hooks/sendMessage/742f4f19-559a-417e-872c-0e51692a0a75"
+	helper.flockMessage(constants["flockWebhook"],msgForFlock)
+	//helper.flockMessage(constants["flockWebhook"],"testing....!!!!")
 	// helper.setDefaults(constants)
 	// echo constants["abcd"]
 	// def taskDef= libraryResource 'net/media/shell/taskdef.json'

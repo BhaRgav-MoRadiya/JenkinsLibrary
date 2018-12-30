@@ -14,8 +14,8 @@ def abortBuild(String msg){
 }
 
 def setDefaults(Map constants){
-  if(!constants.containsKey('abcd')){
-    constants['abcd']="abcde"
+  if(!constants.containsKey('dockerfilePath')){
+    constants['dockerfilePath']="Dockerfile"
   }
 
 }
@@ -31,13 +31,15 @@ def flockMessage(String url,String msg){
   """
 }
 
-def prerequisites(Map constants){
+def prerequisites(String path){
 
   stage("check for prerequisite"){
-		if (fileExists('Dockerfile') && fileExists('variables.groovy')) {
-    	echo 'prerequisite check passed..!!'
+		if (fileExists("${path}")) {
+    	echo 'Found Dockerfile..!!'
+      msgForFlock+="Found Dockerfile..!!"
 		} else {
-			abortBuild("Required files are missing..!! required files:[Dockerfile,variables.groovy]")
+      msgForFlock+="Dockerfile is missing at path specified..!!"
+			abortBuild("Dockerfile is missing..!!")
 		}
 	}
 }
