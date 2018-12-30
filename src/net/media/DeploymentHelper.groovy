@@ -31,14 +31,14 @@ def flockMessage(String url,String msg){
   """
 }
 
-def prerequisite(String path,String msgForFlock){
+def prerequisite(Map constants){
 
   stage("check for prerequisite"){
-		if (fileExists("${path}")) {
+		if (fileExists(constants['dockerfilePath'])) {
     	echo 'Found Dockerfile..!!'
-      msgForFlock+="Found Dockerfile..!!"
+      constants['msgForFlock']+="Found Dockerfile..!!"
 		} else {
-      msgForFlock+="Dockerfile is missing at path specified..!!"
+      constants['msgForFlock']+="Dockerfile is missing at path specified..!!"
 			abortBuild("Dockerfile is missing..!!")
 		}
 	}

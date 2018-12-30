@@ -30,12 +30,12 @@ def call(Map constants){
 
 	//def aws_docker_command = """docker run --rm -t \$(tty &>/dev/null && echo "-i") -e "AWS_ACCESS_KEY_ID=\${AWS_ACCESS_KEY_ID}" -e "AWS_SECRET_ACCESS_KEY=\${AWS_SECRET_ACCESS_KEY}" -e "AWS_DEFAULT_REGION=${REGION}" mesosphere/aws-cli """
 	def customImage = ''
-	def msgForFlock=''
+	constants['msgForFlock']="Starting build..!!\n"
 	helper = new DeploymentHelper()
 	helper.setDefaults(constants)
-	helper.prerequisite(constants["dockerfilePath"],msgForFlock)
+	helper.prerequisite(constants)
 	constants['flockWebhook']="https://api.flock.com/hooks/sendMessage/742f4f19-559a-417e-872c-0e51692a0a75"
-	helper.flockMessage(constants["flockWebhook"],msgForFlock)
+	helper.flockMessage(constants["flockWebhook"],constants['msgForFlock'])
 	//helper.flockMessage(constants["flockWebhook"],"testing....!!!!")
 	// helper.setDefaults(constants)
 	// echo constants["abcd"]
