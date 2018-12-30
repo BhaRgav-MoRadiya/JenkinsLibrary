@@ -7,8 +7,10 @@ import groovy.json.JsonBuilder
   Abort builds with custom message.
   This aborts the build not fail it.
 */
-def abortBuild(String msg){
+def abortBuild(Map constants,String msg){
     //currentBuild variable is available by default.
+    constants['msgForFlock']+="Aborting build.Reason:${msg}\n"
+    flockMessage(constants)
     currentBuild.result = 'ABORTED'
     error(msg)
 }
@@ -20,26 +22,27 @@ def setDefaults(Map constants){
 
 }
 
-def flockMessage(String url,String msg){
-  sh """
-  #!/bin/bash
-  set +x
-  curl -sX POST ${url} -H "Content-Type: application/json" -d '{
-  "text": "${msg}"
-  }'
-  set -x
-  """
+def flockMessage(Map constants){
+  if(constants.containsKey('flockWebhook')){
+    sh """
+    #!/bin/bash
+    set +x
+    curl -sX POST ${constants['flockWebhook']} -H "Content-Type: application/json" -d '{
+    "text": "${constants['msgForFlock']}"
+    }'
+    set -x
+    """
+  }
 }
 
 def prerequisite(Map constants){
 
   stage("check for prerequisite"){
 		if (fileExists(constants['dockerfilePath'])) {
-    	echo 'Found Dockerfile..!!'
-      constants['msgForFlock']+="Found Dockerfile..!!"
+    	sh "cat ${constants['dockerfilePath']}"
+      constants['msgForFlock']+="Found Dockerfile..!!\n"
 		} else {
-      constants['msgForFlock']+="Dockerfile is missing at path specified..!!"
-			abortBuild("Dockerfile is missing..!!")
+      abortBuild(constants,"Dockerfile is missing..!!")
 		}
 	}
 }
