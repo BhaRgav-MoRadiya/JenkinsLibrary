@@ -13,16 +13,20 @@ def abortBuild(String msg){
     error(msg)
 }
 
+def first_test(Map constants){
+  if(!constants.containsKey('abcd')){
+    constants['abcd']="abcde"
+  }
+
+}
+
 def prerequisites(Map constants){
 
   stage("check for prerequisite"){
-		if ("${env.gitlabTargetBranch}" == "release" && fileExists('Dockerfile') && fileExists('variables.groovy')) {
+		if (fileExists('Dockerfile') && fileExists('variables.groovy')) {
     	echo 'prerequisite check passed..!!'
 		} else {
-			echo 'Either code is pushed to different branch than the one specified or required files are missing..!! required files:[task_def.json,Dockerfile,variables.groovy]'
-    	//currentBuild.result = 'ABORTED'
-			//return
-			helper.abortBuild("Either code is pushed to different branch than the one specified or required files are missing..!! required files:[Dockerfile,variables.groovy]")
+			abortBuild("Required files are missing..!! required files:[Dockerfile,variables.groovy]")
 		}
 	}
 }
