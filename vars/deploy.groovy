@@ -33,9 +33,9 @@ def call(Map constants){
 	constants['msgForFlock']="Starting build..!!\n"
 	//constants['dockerfilePath']="subdir/Dockerfile"
 	helper = new DeploymentHelper()
+	constants['flockWebhook']="https://api.flock.com/hooks/sendMessage/742f4f19-559a-417e-872c-0e51692a0a75"
 	helper.setDefaults(constants)
 	helper.prerequisite(constants)
-	constants['flockWebhook']="https://api.flock.com/hooks/sendMessage/742f4f19-559a-417e-872c-0e51692a0a75"
 	helper.flockMessage(constants)
 	//helper.flockMessage(constants["flockWebhook"],"testing....!!!!")
 	// helper.setDefaults(constants)
