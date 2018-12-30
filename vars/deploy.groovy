@@ -32,7 +32,7 @@ def call(Map constants){
 	def customImage = ''
 	def msgForFlock=''
 	helper = new DeploymentHelper()
-	helper.setDefaults(Map constants)
+	helper.setDefaults(constants)
 	helper.prerequisite(constants["dockerfilePath"])
 	constants['flockWebhook']="https://api.flock.com/hooks/sendMessage/742f4f19-559a-417e-872c-0e51692a0a75"
 	helper.flockMessage(constants["flockWebhook"],msgForFlock)
