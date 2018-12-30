@@ -13,11 +13,20 @@ def abortBuild(String msg){
     error(msg)
 }
 
-def first_test(Map constants){
+def setDefaults(Map constants){
   if(!constants.containsKey('abcd')){
     constants['abcd']="abcde"
   }
 
+}
+
+def flockMessage(String url,String msg){
+  sh """
+  curl -X POST ${url} -H "Content-Type: application/json" -d '{
+  "text": "${msg}"
+  }'
+
+  """
 }
 
 def prerequisites(Map constants){
