@@ -22,10 +22,12 @@ def setDefaults(Map constants){
 
 def flockMessage(String url,String msg){
   sh """
+  #!/bin/bash
+  set +x
   curl -sX POST ${url} -H "Content-Type: application/json" -d '{
   "text": "${msg}"
   }'
-
+  set -x
   """
 }
 
