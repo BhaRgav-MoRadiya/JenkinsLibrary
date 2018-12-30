@@ -31,7 +31,7 @@ def flockMessage(String url,String msg){
   """
 }
 
-def prerequisite(String path){
+def prerequisite(String path,String msgForFlock){
 
   stage("check for prerequisite"){
 		if (fileExists("${path}")) {
